@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TSC Pi Debug</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+</head>
+<body>
+    <div id="sketch-container"></div>
+    
+    <script>
+        function testSketch(p) {
+            p.setup = function() {
+                console.log('Setup starting...');
+                p.createCanvas(400, 400);
+                console.log('Canvas created');
+                
+                // Test the strokeWeight function
+                try {
+                    p.strokeWeight(5);
+                    console.log('strokeWeight function works');
+                } catch (e) {
+                    console.error('strokeWeight error:', e);
+                }
+            };
+            
+            p.draw = function() {
+                p.background(220);
+                p.line(50, 50, 350, 350);
+                p.noLoop();
+            };
+        }
+        
+        new p5(testSketch, 'sketch-container');
+    </script>
+</body>
+</html>

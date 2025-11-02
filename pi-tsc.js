@@ -131,7 +131,9 @@ function piSketch(p) {
         const patternSize = p.masterSize / (density + 2);
         const alpha = isBase ? 150 : 100;
         
-        p.fill(p.red(p.color(color)), p.green(p.color(color)), p.blue(p.color(color)), alpha);
+        // Set color with alpha
+        const c = p.color(color);
+        p.fill(p.red(c), p.green(c), p.blue(c), alpha);
         
         for (let i = 0; i < density; i++) {
             const x = p.random(patternSize, p.masterSize - patternSize);
