@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSC Pi - קוד המקור</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300..900&family=IBM+Plex+Sans+Hebrew:wght@100;200;300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'IBM Plex Sans Hebrew', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        
+        #sketch-container {
+            flex-shrink: 0;
+        }
+        
+        .reading-panel {
+            max-width: 500px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .reading-panel h2 {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .reading-content {
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: right;
+        }
+        
+        .generate-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            font-size: 18px;
+            font-family: 'IBM Plex Sans Hebrew', sans-serif;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .generate-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .instructions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .reading-panel {
+                max-width: 90vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        לחץ על הכפתור או מקש SPACE ליצירת קלף חדש
+    </div>
+    
+    <div class="container">
+        <div id="sketch-container"></div>
+        <div class="reading-panel">
+            <h2>קריאת הקלף</h2>
+            <div class="reading-content" id="reading-content">
+                לחץ על "צור קלף" כדי להתחיל...
+            </div>
+        </div>
+    </div>
+    
+    <button class="generate-btn" id="generate-btn">צור קלף</button>
+    
+    <script src="elements-data.js"></script>
+    <script src="pi-tsc.js"></script>
+</body>
+</html>
