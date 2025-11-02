@@ -1,4 +1,4 @@
-// TSC Raspberry Pi Version - More Precise Original Implementation
+// TSC Raspberry Pi Version - Complete with All Elements
 let p5Instance;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,7 +24,7 @@ function piSketch(p) {
     let currentReading = '';
     
     p.setup = function() {
-        console.log('Starting precise TSC setup...');
+        console.log('Starting complete TSC setup...');
         
         // Calculate responsive size with exact TSC proportions
         const maxWidth = Math.min(window.innerWidth * 0.4, 400);
@@ -45,15 +45,15 @@ function piSketch(p) {
         
         p.createCanvas(p.w, p.h);
         
-        p.initializePreciseSystem();
+        p.initializeCompleteSystem();
         p.generateParameters();
-        p.drawPrecise();
+        p.drawComplete();
         p.generateReading();
         
-        console.log('Precise TSC setup complete');
+        console.log('Complete TSC setup done');
     };
     
-    p.initializePreciseSystem = function() {
+    p.initializeCompleteSystem = function() {
         // Exact TSC color palettes from original
         p.Cl = [
             ["#fff9ed","#654630","#9dbd82","#ffba08","#fdc09b","#fd353c","#2999c2","#a399c4","#89429e","#040825"],
@@ -67,6 +67,7 @@ function piSketch(p) {
         p.bc2 = p.Cl[p.plt];
         p.bc3 = p.Cl[p.plt];
         p.c1 = [p.Cl[p.plt][0], p.Cl[p.plt][9]]; // white, black
+        p.sc2 = p.Cl[p.plt][0];
         
         // Exact TSC layout parameters
         p.mrg = p.w * 0.015; // margin
@@ -78,7 +79,7 @@ function piSketch(p) {
         p.l1 = p.createGraphics(p.w, p.h);    // Base layer
         p.l2 = p.createGraphics(p.w, p.h);    // Vision layer
         p.lCore = p.createGraphics(p.w, p.h); // Core layer
-        p.lf = p.createGraphics(p.w, p.h);    // Frame layer
+        p.lf = p.createGraphics(p.w, p.h);    // Frame layer (TOP + BOTTOM elements)
         p.m1 = p.createGraphics(p.w, p.h);    // Mask 1
         p.m2 = p.createGraphics(p.w, p.h);    // Mask 2
         
@@ -86,8 +87,10 @@ function piSketch(p) {
         p.e1 = p.ms / 3;  // Base cell size
         p.e2 = p.ms / 3;  // Vision cell size
         p.hor = 0.75;     // Horizontal multiplier
+        p.hor2 = 0.85;    // Second horizontal multiplier
         p.xg = 0.2;
         p.xg2 = 1 - p.xg;
+        p.curv = 0.75;    // Curve amount for flow
         
         // Color indices
         p.rsc2 = 9;
@@ -96,6 +99,17 @@ function piSketch(p) {
         p.wab = 0;
         p.co = 0;
         p.isc = 1;
+        
+        // Size calculations for top symbols
+        if(p.g1 <= 6){
+            p.tz = (p.ms/(p.g1*4))*2;  
+        } else if(p.g1 > 10){
+            p.tz = p.ms/(p.g1*1.2);       
+        } else {
+            p.tz = p.ms/(p.g1*2);  
+        }
+        
+        p.eysz = p.ms / (p.g1 * 20); // Eye size for fight
     };
     
     p.generateParameters = function() {
@@ -109,6 +123,9 @@ function piSketch(p) {
         p.rc2 = p.int(p.random(0, 9));  // Base color
         p.rc3 = p.int(p.random(0, 9));  // Vision color
         
+        // Create the cc array (8 parameters for bottom display)
+        p.cc = [p.pv, p.s2, p.s1, p.g1, p.s3, p.g2, p.rc2, p.rc3];
+        
         // Point of view calculation
         const povRand = p.random();
         if (povRand < 0.8) p.pv = 0;
@@ -117,19 +134,25 @@ function piSketch(p) {
         else if (povRand < 0.98) p.pv = 3;
         else p.pv = 4;
         
-        console.log('Precise TSC Parameters:', {
+        // Update cc array with calculated pv
+        p.cc[0] = p.pv;
+        
+        console.log('Complete TSC Parameters:', {
             pv: p.pv, s1: p.s1, s2: p.s2, s3: p.s3,
             g1: p.g1, g2: p.g2, rc2: p.rc2, rc3: p.rc3
         });
     };
     
-    p.drawPrecise = function() {
+    p.drawComplete = function() {
         // Follow exact original sequence
         p.noFill();
         
         // Generate base and vision patterns exactly like original
         p.wr(true, p.l1, 0, 0, p.s1, p.e1, p.bc2[p.rc2], p.sc1[p.rsc2], p.isc);
         p.wr(true, p.l2, 0, 0, p.s3, p.e2, p.bc2[p.rc3], p.sc1[p.rsc3], 1);
+        
+        // Draw TOP SYMBOLS (s1, s2, s3) and BOTTOM CODE SYMBOLS
+        p.drawFrameElements();
         
         // Create masks exactly like original
         p.mM(p.m1, 0, p.e1);
@@ -156,13 +179,42 @@ function piSketch(p) {
         p.image(p.lCore, 0, 0);
         p.makeCore();
         
+        // Draw frame elements on top
+        p.image(p.lf, 0, 0);
+        
         // Frame masking
         p.fill(p.c1[p.wab]);
         p.noStroke();
         p.rect(0, 0, p.mrg, p.h);
         p.rect(p.w - p.mrg, 0, p.mrg, p.h);
         p.rect(0, 0, p.w, p.mrg);
-        p.rect(0, p.h - p.mrg, p.w, p.mrg);
+        p.rect(0, p.msh + p.mrg, p.w, p.h);
+    };
+    
+    // NEW: Draw the missing frame elements (top symbols + bottom code)
+    p.drawFrameElements = function() {
+        p.lf.stroke(p.c1[p.baw]);
+        p.lf.fill(p.c1[p.wab]);
+        
+        // Top symbol boxes (background)
+        p.lf.rect(0, 0, p.tz*6, p.tz*2); 
+        p.lf.rect(p.tz*2, 0, p.tz*2, p.tz*2);
+        
+        // Top symbol size calculations
+        var tR = 0.615;
+        var tts = p.tz * tR;
+        var ttsp = p.tz * (1 - tR);
+        
+        // Draw three top symbols (s1, s2, s3)
+        p.wr(false, p.lf, ttsp, ttsp, p.s1, tts, p.co, p.c1[p.baw]); 
+        p.wr(false, p.lf, ttsp*3+(tts*2), ttsp, p.s2, tts, p.co, p.c1[p.baw]); 
+        p.wr(false, p.lf, ttsp*5+(tts*4), ttsp, p.s3, tts, p.co, p.c1[p.baw]); 
+        
+        // Bottom code symbols (all 8 parameters)
+        var ccs = p.ms/90;
+        for(let i = 0; i < p.cc.length; i++) {
+            p.wr(false, p.lf, p.gsw+(i*ccs*3), p.msh+(p.msh/75), p.cc[i], ccs, p.co, p.c1[p.baw]); 
+        }
     };
     
     // Exact original wr function with all patterns
@@ -338,42 +390,189 @@ function piSketch(p) {
         return contentImg;
     };
     
-    // Pre-core layer preparation
-    p.preCore = function() {
-        // Add core preparation if needed
+    // Arc helper function
+    p.mA = function(xArk, yArk, wArk, hArk) {
+        p.beginShape();
+        p.vertex(xArk, yArk);
+        p.bezierVertex(xArk, yArk-hArk, xArk+wArk, yArk-hArk, xArk+wArk, yArk);
+        p.endShape();   
     };
     
-    // Original makeCore function (simplified version for key actions)
+    // Pre-core layer preparation
+    p.preCore = function() {
+        if (p.s2 == 0) { // Crystal needs special prep
+            p.wr(false, p.lCore, p.mrg + p.ms / 2 - p.e1, p.mrg + p.e1 * p.hor - p.e1, 7, p.ms / (p.g1), p.c1[p.baw], p.c1[p.baw]);   
+        }
+    };
+    
+    // Complete makeCore function with ALL actions
     p.makeCore = function() {
-        p.stroke(p.c1[p.baw]);
-        
         switch(p.s2) {
-            case 2: // Settle
-                p.line(p.mrg, p.mrg + p.e1 * p.hor, p.w - p.mrg, p.mrg + p.e1 * p.hor);
+            case 0:  // Crystalize
+                p.stroke(p.c1[p.baw]);  
+                p.line(p.mrg, p.mrg + (p.ms/p.g2) * p.hor2, p.w - p.mrg, p.mrg + (p.ms/p.g2) * p.hor2);
+                for(let i = 0.2; i < 0.81; i += (1 + p.s3) * 0.01) {
+                    let alx = i;
+                    p.beginShape();
+                    p.vertex(p.mrg + p.ms * 0.5, p.mrg + p.e1 * 1.5);
+                    p.vertex(p.mrg + p.ms * alx, (p.ms/p.g2) * p.hor + p.mrg);
+                    p.vertex(p.mrg + p.ms * 0.5, p.mrg + p.e1 * p.g1);
+                    p.vertex(p.mrg + p.ms * alx, p.mrg + p.e1 * p.hor);
+                    p.endShape(p.CLOSE);
+                } 
+                p.line(p.ms + p.mrg, p.mrg + (p.ms/p.g1) * p.hor, p.mrg, p.mrg + (p.ms/p.g1) * p.hor);
                 break;
                 
-            case 1: // Hold
+            case 1:  // Hold
+                p.stroke(p.c1[p.baw]);
                 p.rect(p.mrg, p.mrg, p.e1, p.msh);
-                p.rect(p.w - p.mrg - p.e1, p.mrg, p.e1, p.msh);
+                p.rect(p.w - p.mrg - p.e1, p.mrg, p.e1, p.msh);    
                 break;
                 
-            case 7: // Look
+            case 2:  // Settle
+                p.stroke(p.c1[p.baw]);
+                p.fill(p.sc2);
+                p.mA(p.mrg + p.ms * 0.25, p.mrg + p.e1 * p.hor, p.ms / 2, p.ms / 2 * 0.6666);
+                p.line(p.mrg, p.mrg + p.e1 * p.hor, p.ms + p.mrg, p.mrg + p.e1 * p.hor);
+                let fool = p.mrg;
+                for(let i = p.mrg + p.ms * 0.25; i < p.mrg + p.ms * 0.75; i += p.g1 * 3) {
+                    p.stroke(p.c1[p.baw]);
+                    p.line(i, p.mrg + (p.gsw * 2) + p.e1 * p.hor, fool, p.mrg + p.msh);
+                    p.stroke(0);
+                    fool += 18.1;
+                }
+                break;
+                
+            case 3:  // Heal
+                p.fill(p.c1[p.wab]);
+                p.stroke(p.c1[p.baw]);
+                p.triangle(p.mrg + p.e1, p.mrg + p.msh * 1, p.mrg + p.ms * 0.5, p.e1, p.w - p.e1, p.mrg + p.msh * 1);
+                p.fill(p.c1[p.baw]);
+                p.noFill();
+                p.ellipse(p.mrg + p.ms/2, p.msh/1, p.ms, p.ms);
+                p.ellipse(p.mrg + p.ms/2, p.e1, p.ms, p.ms);
+                break;
+                
+            case 4: // Teleport
+                let fp = [1.05, 1.1, 2, 5, 7, 1.4, 6, 3, 1.2, 2, 1.2, 2.5, 3, 2, 6, 2];
+                p.stroke(p.c1[p.baw]);
+                let xg3 = 0.2;
+                let xg32 = 1 - xg3;
+                p.beginShape();
+                p.vertex(p.mrg + p.ms * xg3, p.msh * 0.6);
+                p.bezierVertex(p.mrg + p.ms * xg3, p.msh * 0.4 - (p.ms/5 * 0.6666), p.mrg + p.ms * xg32, p.msh * 0.4 - (p.ms/5 * 0.6666), p.mrg + p.ms * xg32, p.msh * 0.6);
+                p.vertex(p.mrg + p.ms * xg32, p.msh + p.mrg);    
+                p.vertex(p.mrg + p.ms * xg3, p.msh + p.mrg);
+                p.endShape(p.CLOSE); 
+                p.fill(p.Cl[p.plt][9]);
+                p.beginShape();
+                p.vertex(p.mrg + p.ms * xg3, p.msh * 0.6);
+                p.bezierVertex(p.mrg + p.ms * xg3, p.msh * 0.4 - (p.ms/5 * 0.6666), p.mrg + p.ms * xg32, p.msh * 0.4 - (p.ms/5 * 0.6666), p.mrg + p.ms * xg32, p.msh * 0.6);
+                p.vertex(p.mrg + p.ms * xg32, p.msh * 0.8 + p.mrg);    
+                p.vertex(p.mrg + p.ms * xg3, p.msh * 0.65 + p.mrg);
+                p.endShape(p.CLOSE); 
+                for(let i = 0; i < 16; i += 2) {
+                    p.fill(p.c1[p.baw]);
+                    p.ellipse(p.ms/fp[i], p.msh/fp[i+1], p.ms/(p.g1 * 20));
+                }
+                p.push();
+                p.translate(0, p.ms/8);
+                p.fill(p.c1[0]);    
+                p.ellipse(p.mrg + p.ms/2, p.mrg + p.e1 * p.hor, p.ms/(p.g1 * 2));      
+                p.fill(p.c1[1]);
+                p.noStroke();
+                p.ellipse(p.mrg + p.ms/2 + (p.e1/8), p.mrg + p.e1 * p.hor, p.ms/(p.g1 * 2.6));
+                p.pop();
+                break;
+                
+            case 5:  // Fight
+                p.stroke(p.c1[p.baw]);
+                p.beginShape();
+                p.vertex(p.ms/2 - p.ms/(p.g1/0.75), p.mrg + p.e1 * p.hor); 
+                p.vertex(p.ms/2 + p.ms/(p.g1 * 4), p.mrg + p.e1 * p.hor);  
+                p.vertex(p.w - p.mrg, p.msh + p.mrg);  
+                p.vertex(p.mrg, p.msh + p.mrg);         
+                p.endShape(p.CLOSE);
+                p.fill(p.c1[p.wab]);
+                p.ellipse(p.mrg + p.ms/2, p.mrg + p.e1 * p.hor, p.ms/(p.g1/2));
+                p.push();
+                p.translate(0, p.e1/1.5);
+                p.line(p.ms/2 - (p.e1 * 0.1), p.mrg + (p.e1 * 1) * p.hor, p.ms/2 + (p.e1 * 0.4), p.mrg + (p.e1 * 1) * p.hor);
+                p.pop();
+                p.line(p.w - p.mrg, p.mrg + p.e1 * p.hor, p.ms/2 - p.ms/(p.g1/0.75), p.mrg + p.e1 * p.hor);
+                p.line(p.ms/2 - (p.e1 * 0.6), p.mrg + (p.e1 * 1.6) * p.hor, p.ms/2 - (p.e1 * 1), p.msh + p.mrg);
+                p.line(p.ms/2 + (p.e1 * 0.4), p.mrg + (p.e1 * 1.6) * p.hor, p.ms/2 + (p.e1 * 1), p.msh + p.mrg);
+                break;
+                
+            case 6: // Flow
+                p.stroke(p.c1[p.baw]);
+                let sz = p.w/2 - p.mrg;
+                let h5 = sz * p.curv;
+                let x = p.w/2;
+                let y = p.mrg + p.msh/2;
+                p.beginShape();     
+                p.vertex(x - sz, y);
+                p.bezierVertex(x - sz/3, y + h5, x + sz/3, y - h5, x + sz, y);
+                p.vertex(x + sz, p.msh + p.mrg);
+                p.vertex(x - sz, p.msh + p.mrg);   
+                p.endShape();
+                p.fill(p.bc2[p.rc3]);
+                p.ellipse(p.mrg + p.ms * 0.225, p.msh/2.5 - p.mrg, p.ms/4);
+                p.fill(p.bc2[p.rc2]);
+                p.ellipse(p.mrg + p.ms * 0.775, p.msh/1.7 + (p.mrg * 3), p.ms/4);
+                break;
+                
+            case 7: // Look                
                 p.fill(p.sc1[p.rsc2]);
                 p.stroke(p.c1[1]);
-                p.ellipse(p.mrg + p.ms / 2, p.mrg + p.e1 * p.hor, p.ms / (p.g1 * 1));
+                p.ellipse(p.mrg + p.ms / 2, p.mrg + p.e1 * p.hor, p.ms / (p.g1 * 1));   
                 p.fill(255);
-                p.ellipse(p.mrg + p.ms / 2, p.mrg + p.e1 * p.hor, p.ms / (p.g1 * 1) * 0.8);
+                p.ellipse(p.mrg + p.ms / 2, p.mrg + p.e1 * p.hor, p.ms / (p.g1 * 1) * 0.8);   
+                p.noFill();
+                p.stroke(p.c1[p.baw]);
+                p.beginShape();
+                p.vertex(p.mrg + p.ms * 0.5, p.mrg + p.e1 * p.hor);     
+                p.vertex(p.mrg + p.ms * 0.5, p.mrg + p.e1 * p.hor); 
+                p.vertex(p.w - p.mrg, p.msh + p.mrg);
+                p.vertex(p.mrg, p.msh + p.mrg);   
+                p.endShape(p.CLOSE);
+                break;  
+
+            case 8: // Visit
+                p.stroke(p.c1[p.baw]);
+                p.beginShape();
+                p.vertex(p.mrg + p.ms/2 - p.ms/(p.g1 * 5), p.mrg + p.e1 * p.hor); 
+                p.vertex(p.mrg + p.ms/2 + p.ms/(p.g1 * 5), p.mrg + p.e1 * p.hor);  
+                p.vertex(p.w - (p.mrg * 10), p.msh + p.mrg);  
+                p.vertex(p.mrg * 10, p.msh + p.mrg);         
+                p.endShape(p.CLOSE); 
+                p.stroke(p.c1[p.baw]);
+                p.fill(p.c1[p.wab]);
+                p.mA(p.mrg + p.ms * 0.25, p.mrg + p.e1 * p.hor, p.ms/2, p.ms/2 * 0.6666);
+                p.ellipse(p.mrg + p.ms/2, p.mrg + p.e1 * p.hor, p.ms * 0.8, p.ms * 0.25);
+                p.fill(p.c1[p.baw]);    
+                p.ellipse(p.mrg + p.ms/2, p.mrg + p.e1 * p.hor, p.ms * 0.4, p.ms * 0.115);
+                p.noStroke();
+                p.mA(p.mrg + p.ms * 0.3, p.mrg + p.e1 * p.hor, p.ms * 0.4, -p.ms/5);
                 break;
-                
-            case 9: // End
+                                    
+            case 9:  // End
                 p.stroke(p.c1[p.baw]);
                 p.beginShape();
                 p.vertex(p.mrg, p.msh + p.mrg);
                 p.bezierVertex(p.ms / 2 - p.e1, p.e1 * p.hor * 0.5, p.ms / 2 + p.e1, p.e1 * p.hor * 0.5, p.w - p.mrg, p.msh + p.mrg);
-                p.vertex(p.w - p.mrg, p.msh + p.mrg);
+                p.vertex(p.w - p.mrg, p.msh + p.mrg);         
                 p.endShape(p.CLOSE);
-                p.fill(p.c1[p.wab]);
+                p.fill(p.c1[p.wab]);     
                 p.ellipse(p.mrg + p.ms / 2, p.mrg + p.e1 * p.hor, p.ms / (p.g1 * 0.6));
+                p.push();
+                p.translate(0, p.e1 / 1.5);
+                p.mA(p.mrg + p.ms / 2 - p.e1 / 2, p.mrg + p.e1 * p.hor, p.e1, -p.e1 / 2);  
+                p.line(p.ms / 2 - (p.e1 * 0.2), p.mrg + (p.e1 * 1) * p.hor, p.ms / 2 + (p.e1 * 0.35), p.mrg + (p.e1 * 1) * p.hor);
+                p.pop();
+                p.fill(p.c1[p.baw]);    
+                p.noStroke();
+                p.fill(p.bc2[p.rc3]);
                 break;
         }
     };
@@ -405,7 +604,7 @@ function piSketch(p) {
     
     p.generateNewCard = function() {
         p.generateParameters();
-        p.drawPrecise();
+        p.drawComplete();
         p.generateReading();
     };
     
