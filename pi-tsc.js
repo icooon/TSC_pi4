@@ -68,7 +68,7 @@ function piSketch(p) {
         // Canvas setup
         p.margin = p.w * 0.015;
         p.masterSize = p.w * 0.97;
-        p.strokeWeight = p.masterSize / 600;
+        p.strokeWeightValue = p.masterSize / 600;
         p.cellSize = p.masterSize / 3;
     };
     
@@ -125,7 +125,7 @@ function piSketch(p) {
         const element = elementsData.elements[elementId];
         p.fill(color);
         p.stroke(p.frameColors[1]);
-        p.strokeWeight(p.strokeWeight);
+        p.strokeWeight(p.strokeWeightValue);
         
         // Simple geometric patterns based on element
         const patternSize = p.masterSize / (density + 2);
@@ -182,7 +182,7 @@ function piSketch(p) {
         
         p.fill(p.frameColors[0]);
         p.stroke(p.frameColors[1]);
-        p.strokeWeight(p.strokeWeight * 3);
+        p.strokeWeight(p.strokeWeightValue * 3);
         
         switch (actionId) {
             case 0: // Crystalize
@@ -226,7 +226,7 @@ function piSketch(p) {
     p.drawFrame = function() {
         // Draw simple frame
         p.stroke(p.frameColors[1]);
-        p.strokeWeight(p.strokeWeight * 2);
+        p.strokeWeight(p.strokeWeightValue * 2);
         p.noFill();
         p.rect(p.margin, p.margin, p.masterSize, p.h - p.margin * 2);
     };
